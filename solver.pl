@@ -64,7 +64,7 @@ proofGen([KB,Goal,PRF],RES) :-
   proof(KB,Goal,PRF),
   quote(KB),quote(Goal),quote(PRF),
   unquote(KB,KBU),
-  proof(KBU,[solve,[KB,Goal,PFR],[KBp,Gp,Pp]],_),
+  proof(KBU,[solve,[KB,Goal,PRF],[KBp,Gp,Pp]],_),
   quote(KBp),quote(Gp),quote(Pp), %Need to be quoted again (new variables)
   unquote(KBp,KBpU),unquote(Gp,GpU),unquote(Pp,PpU),
   ((vars(Pp,[]),
