@@ -60,6 +60,18 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
   maplist(proof,KBL,Cpi,REMp),
   noSingletons(REMp,REM).
 
+proofGen([KB,Goal,PRF],RES) :-
+  proof(KB,Goal,PRF),
+  quote(KB),quote(Goal),quote(PRF),
+  unquote(KB,KBU),
+  proof(KBU,[solve,[KB,Goal,PFR],[KBp,Gp,Pp]],_),
+  quote(KBp),quote(Gp),quote(Pp), %Need to be quoted again (new variables)
+  unquote(KBp,KBpU),unquote(Gp,GpU),unquote(Pp,PpU),
+  ((vars(Pp,[]),
+    RES = [KBpU,GpU,PpU], !))
+    ;
+    proofGen([KBpU,GpU,PpU],RES)).
+
 /*
 KB=[
   [p1,':',cA],
