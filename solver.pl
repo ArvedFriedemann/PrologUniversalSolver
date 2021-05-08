@@ -34,9 +34,19 @@ quoteWith([C|CS],T) :- assignUnas(C,T),!,quoteWith(CS,T).
 quoteWith(_,_).
 % T=[X,X,Y,Z,Y], quoteWith([1,2,3,4],T).
 % T=[X,X,Y,Z,Y], quoteWith([1,2,3,4],T), refreshCnst([1,2,3,4],T,Tp).
+quote(T) :- gensym(q,C), assignUnas(var(C),T),!,quote(T).
+quote(_).
+% T=[X,X,Y,Z,Y], quote(T).
+vars(T,VS) :- flatten(T,TF), flatvars(TF,VS).
+flatvars([],[]).
+flatvars([var(X)|XS],[var(X)|ZS]) :- !,flatvars(XS,ZS).
+flatvars([_|XS],ZS) :- !,flatvars(XS,ZS).
+
+unquote(T,U) :- vars(T,V), refreshCnst(V,T,U).
+% T=[X,X,Y,Z,Y], quote(T), unquote(T,U).
 
 replicateFor(_,[],[]).
-replicateFor(C,[C|CS],[_|XS]) :- replicateFor(C,CS,XS). 
+replicateFor(C,[C|CS],[_|XS]) :- replicateFor(C,CS,XS).
 
 noSingletons([],[]).
 noSingletons([[X]|XS],[X|ZS]) :- !, noSingletons(XS,ZS).
@@ -49,7 +59,7 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
   replicateFor(KB,KBL,Cpi),
   maplist(proof,KBL,Cpi,REMp),
   noSingletons(REMp,REM).
-  
+
 /*
 KB=[
   [p1,':',cA],
