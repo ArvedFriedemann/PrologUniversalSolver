@@ -12,7 +12,8 @@ assignVars([X|XS],[[X,_]|XSp]) :- assignVars(XS,XSp).
 refreshCnst(C,X,Y) :- assignVars(C,Cp), refresh(Cp,X,Y).
 % refreshCnst([1,2,3],[[1,4],[5,2],[1,2]],X), refreshCnst([1,2,3],[[4,4],[5,5],[1,2]],Y), X=Y.
 
-refreshClause(CTX,[[_a,':',A],'->'|B],[Ap,'->'|Bp]) :- refresh([[_a,K]|CTX],A,Ap), refreshClause([[_a,K]|CTX],B,Bp),!.
+refreshClause(CTX,[[_a,':',A],'->'|B],[[K,':',Ap],'->'|Bp]) :-
+  refresh([[_a,K]|CTX],A,Ap), refreshClause([[_a,K]|CTX],B,Bp),!.
 refreshClause(CTX,A,Ap) :- refresh(CTX,A,Ap).
 % refreshClause([],[[a,':',cA],'->',[b,':',[cB,a]],'->',[cC,b,a]],X).
 
@@ -52,6 +53,7 @@ noSingletons([],[]).
 noSingletons([[X]|XS],[X|ZS]) :- !, noSingletons(XS,ZS).
 noSingletons([X|XS],[X|ZS]) :- noSingletons(XS,ZS),!.
 
+proof(KB,[P,':',Goal],P) :- !,proof(KB,Goal,P).
 proof(KB,[[K,':'|P],'->'|PS],[lambda,K,PRF]) :- !,proof([[K,':'|P]|KB],PS,PRF).
 proof(KB,[P],PRF) :- !,proof(KB,P,PRF).
 proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
@@ -79,7 +81,7 @@ proofGen([KB,Goal,PRF],RES) :-
 /*
 KB=[
   [p1,':',cA],
-  [p3,':',cA],
+  [p3,':',cB],
   [p2,':',cB],
   [prf,':',[a,':',cA],'->',[b,':',cB],'->',[cC,b]]
   ],
@@ -89,4 +91,11 @@ KB=[
   [prf,':',[a,':',cA],'->',[b,':',cB],'->',[cC,b]]
   ],
 proof(KB,[[p1,':',cA],'->',[p2,':',cB],'->',[cC,K]],PRF).
+
+KB=[
+  [p1,':',cA],
+  [p2,':',cB],
+  [prf,':',[a,':',cA],'->',[b,':',cB],'->',[cC,b]]
+  ],
+proofGen([KB,[cC,K],PRF],RES).
 */
