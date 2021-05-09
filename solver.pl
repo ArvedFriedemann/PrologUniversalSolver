@@ -63,14 +63,18 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
 proofGen([KB,Goal,PRF],RES) :-
   proof(KB,Goal,PRF),
   quote(KB),quote(Goal),quote(PRF),
-  unquote(KB,KBU),
-  proof(KBU,[solve,[KB,Goal,PRF],[KBp,Gp,Pp]],_),
-  quote(KBp),quote(Gp),quote(Pp), %Need to be quoted again (new variables)
-  unquote(KBp,KBpU),unquote(Gp,GpU),unquote(Pp,PpU),
-  ((vars(Pp,[]),
-    RES = [KBpU,GpU,PpU], !))
+  ((vars(PRF,[]),
+    unquote(KB,KBU),unquote(Goal,GoalU),unquote(PRF,PRFU),
+    RES = [KBU,GoalU,PRFU], !)
     ;
-    proofGen([KBpU,GpU,PpU],RES)).
+  ( unquote(KB,KBU),
+    proof(KBU,[solve,[KB,Goal,PRF],[KBp,Gp,Pp]],_),
+    quote(KBp),quote(Gp),quote(Pp), %Need to be quoted again (new variables)
+    unquote(KBp,KBpU),unquote(Gp,GpU),unquote(Pp,PpU),
+    ((vars(Pp,[]),
+      RES = [KBpU,GpU,PpU], !)
+      ;
+      proofGen([KBpU,GpU,PpU],RES)) )).
 
 /*
 KB=[
