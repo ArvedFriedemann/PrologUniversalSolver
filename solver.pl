@@ -49,6 +49,9 @@ unquote(T,U) :- vars(T,V), refreshCnst(V,T,U).
 replicateFor(_,[],[]).
 replicateFor(C,[C|CS],[_|XS]) :- replicateFor(C,CS,XS).
 
+replicateZip(_,[],[]).
+replicateZip(C,[X|XS],[[C,X]|ZS]) :- replicateZip(C,XS,ZS).
+
 noSingletons([],[]).
 noSingletons([[X]|XS],[X|ZS]) :- !, noSingletons(XS,ZS).
 noSingletons([X|XS],[X|ZS]) :- noSingletons(XS,ZS),!.
@@ -99,3 +102,21 @@ KB=[
   ],
 proofGen([KB,[cC,K],PRF],RES).
 */
+
+%assumes clause result still carries proof!
+%proofStep(KB,_,[]) :- member([_,':',bot],KB). %should not be needed
+proofStep(KB,[[lambda,_c,P],':',[_c,':',C],'->'|CS],[[[[_c,':',C]|KB],[P,':'|CS]]).
+proofStep(KB,Goal,KBGoals) :-
+  member([Cn,':'|C],KB),
+  applyClause(C,Goal,Cp),
+  initCls(Cp,Goals),
+  replicateZip(KB,Goals,KBGoals).
+proofStep(KB,Goal,) :- %TODO: make the next goals be implications
+
+
+
+
+
+
+
+%
