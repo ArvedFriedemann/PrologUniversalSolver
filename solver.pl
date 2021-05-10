@@ -111,9 +111,13 @@ proofStep(KB,Goal,KBGoals) :-
   applyClause(C,Goal,Cp),
   initCls(Cp,Goals),
   replicateZip(KB,Goals,KBGoals).
-proofStep(KB,Goal,) :- %TODO: make the next goals be implications
+proofStep(KB,[[case,N,SubPrf],':',Goal],KBGoals) :- %TODO: make the next goals be implications
+  select([N,':'|C],KB,KBp),
+  findall([KB,[K,':'|SUB]],applyClause(C,Goal,SUB),KBGoals),
+  proofsOfKBGoals(KBGoals,SubPrf).
 
-
+proofsOfKBGoals([],[]).
+proofsOfKBGoals([[_,[P,':'|_]]|XS],[P|ZS]) :- proofsOf(XS,ZS).
 
 
 
