@@ -21,6 +21,8 @@ refreshClause(CTX,A,Ap) :- refresh(CTX,A,Ap).
 initCls([_],[]).
 initCls([X,'->'|XS],[X|ZS]) :- initCls(XS,ZS).
 
+%TODO: last is a hack. Won't work for functions
+applyClause(C,[G],CLS) :- !, applyClause(C,G,CLS).
 applyClause(C,G,CLS) :- refreshClause([],C,CLS), last(CLS,Cl), Cl=G.
 % applyClause([[a,':',cA],'->',[b,':',[cB,a]],'->',[cC,b,a]],[K,k,l],CLS).
 
@@ -105,19 +107,50 @@ proofGen([KB,[cC,K],PRF],RES).
 
 %assumes clause result still carries proof!
 %proofStep(KB,_,[]) :- member([_,':',bot],KB). %should not be needed
-proofStep(KB,[[lambda,_c,P],':',[_c,':',C],'->'|CS],[[[[_c,':',C]|KB],[P,':'|CS]]).
-proofStep(KB,Goal,KBGoals) :-
+proofStep(KB,[[lambda,_c,P],':',[_c,':',C],'->'|CS],[[ [[_c,':',C]|KB],[P,':'|CS] ]]).
+proofStep(KB,[[case,N,SubPrf],':',Goal],KBGoals) :- %TODO: make the next goals be implications
+  select([N,':'|C],KB,KBpp),
+  refresh([[N,K]],KBpp,KBp),
+  refresh([[N,K]],Goal,Goalp),
+  refresh([[N,K]],C,Cp),
+  findall([KBp,[_,':'|SUB]],
+      (member([_,':'|X],KBp),
+       applyClause(X,Cp,SUBp),
+       append([SUBp,['->',[_,':',Goalp]]],SUB))
+    ,KBGoals),
+  proofsOfKBGoals(KBGoals,SubPrf).
+proofStep(KB,[Cn,':'|Goal],KBGoals) :-
   member([Cn,':'|C],KB),
-  applyClause(C,Goal,Cp),
+  applyClause(C,[Cn,':'|Goal],Cp),
   initCls(Cp,Goals),
   replicateZip(KB,Goals,KBGoals).
-proofStep(KB,[[case,N,SubPrf],':',Goal],KBGoals) :- %TODO: make the next goals be implications
-  select([N,':'|C],KB,KBp),
-  findall([KB,[K,':'|SUB]],applyClause(C,Goal,SUB),KBGoals),
-  proofsOfKBGoals(KBGoals,SubPrf).
+
 
 proofsOfKBGoals([],[]).
-proofsOfKBGoals([[_,[P,':'|_]]|XS],[P|ZS]) :- proofsOf(XS,ZS).
+proofsOfKBGoals([[_,[P,':'|_]]|XS],[P|ZS]) :- proofsOfKBGoals(XS,ZS).
+
+kbGoalsToGoals([],[]).
+kbGoalsToGoals([[_,G]|XS],[G|ZS]) :- kbGoalsToGoals(XS,ZS).
+
+/*
+KB = [ [a,':',[a,':',cA]]
+      ,[p1,':',[p1,':',cA]]
+      ,[p2,':',[p2,':',cA]]
+      ],
+proofStep(KB,[[case,a,PRF],':',cA],PS), kbGoalsToGoals(PS,P).
+
+KB = [ [left,':',[a,':',cA],'->',[cA,v,cB]]
+      ,[right,':',[a,':',cA],'->',[cA,v,cB]]
+      ,[ab,':',[cB,v,cA]]
+      ],
+proofStep(KB,[cA,v,cB],PRF,PS), kbGoalsToGoals(PS,P).
+*/
+
+
+
+
+
+
 
 
 
