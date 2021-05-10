@@ -127,21 +127,29 @@ proofStep(KB,Goal,[case,N,SubPrf],KBGoals) :- %TODO: make the next goals be impl
     ,KBGoals),
   proofsOfKBGoals(KBGoals,SubPrf).
 */
-proofStep(KB,[G],P,KBGoals) :- !, proofStep(KB,G,P,KBGoals).
-proofStep(_,set,_,[]).
-proofStep(KB,[[_c,':',C],'->'|CS], [lambda,_c,P],[[ [[_c,':',C]|KB],CS,P ]]).
-proofStep(KB,Goal,[FKT|ARGS],KBGoals) :-
+proofStep([KB,[G],P],KBGoals) :- !, proofStep([KB,G,P],KBGoals).
+proofStep([_,set,_],[]).
+proofStep([KB,[[_c,':',C],'->'|CS], [lambda,_c,P]],[[ [[_c,':',C]|KB],CS,P ]]).
+proofStep([KB,Goal,[FKT|ARGS]],KBGoals) :-
   member([FKT,':'|C],KB),
   applyClause(C,Goal,Cp),
   initCls(Cp,Goals),
   mapProofVars(Goals,ARGS),
   kbZip(KB,Goals,KBGoals).
 
-proof([KB,Goal,PRF]) :-
-  proofStep(KB,Goal,PRF,States),
+%[KB,Goal,PRF]
+proof(STM) :-
+  proofStep(STM,States),
   maplist(proof,States).
 
-%proofAndorra(KBGoalsPre,KBGoalsPost) :-
+%WARNING: is a list of goals
+proofAndorra(KBGoals) :-
+  select(Goal,KBGoals,KBGoalsP),
+  aggregate_all(count,proofStep(Goal,_),1), !,
+  proofStep(Goal,Steps),
+  append([Steps,KBGoalsP],Next),
+  proofAndorra(Next).
+proofAndorra(_).
 
 
 kbZip(_,[],[]).
