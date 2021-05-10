@@ -21,6 +21,9 @@ refreshClause(CTX,A,Ap) :- refresh(CTX,A,Ap).
 initCls([_],[]).
 initCls([X,'->'|XS],[X|ZS]) :- initCls(XS,ZS).
 
+proofVars([],[]).
+proofVars([[P,':',_],'->'|XS],[P|ZS]) :- proofVars(XS,ZS).
+
 %TODO: last is a hack. Won't work for functions
 applyClause(C,[G],CLS) :- !, applyClause(C,G,CLS).
 applyClause(C,G,CLS) :- refreshClause([],C,CLS), last(CLS,Cl), Cl=G.
@@ -57,7 +60,7 @@ replicateZip(C,[X|XS],[[C,X]|ZS]) :- replicateZip(C,XS,ZS).
 noSingletons([],[]).
 noSingletons([[X]|XS],[X|ZS]) :- !, noSingletons(XS,ZS).
 noSingletons([X|XS],[X|ZS]) :- noSingletons(XS,ZS),!.
-
+/*
 proof(KB,[P,':',Goal],P) :- !,proof(KB,Goal,P).
 proof(KB,[[K,':'|P],'->'|PS],[lambda,K,PRF]) :- !,proof([[K,':'|P]|KB],PS,PRF).
 proof(KB,[P],PRF) :- !,proof(KB,P,PRF).
@@ -66,7 +69,9 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
   replicateFor(KB,KBL,Cpi),
   maplist(proof,KBL,Cpi,REMp),
   noSingletons(REMp,REM).
+*/
 
+/*
 proofGen([KB,Goal,PRF],RES) :-
   proof(KB,Goal,PRF),
   quote(KB),quote(Goal),quote(PRF),
@@ -82,6 +87,8 @@ proofGen([KB,Goal,PRF],RES) :-
       RES = [KBpU,GpU,PpU], !)
       ;
       proofGen([KBpU,GpU,PpU],RES)) )).
+*/
+
 
 /*
 KB=[
@@ -104,40 +111,67 @@ KB=[
   ],
 proofGen([KB,[cC,K],PRF],RES).
 */
-
+/*
 %assumes clause result still carries proof!
 %proofStep(KB,_,[]) :- member([_,':',bot],KB). %should not be needed
-proofStep(KB,[[lambda,_c,P],':',[_c,':',C],'->'|CS],[[ [[_c,':',C]|KB],[P,':'|CS] ]]).
-proofStep(KB,[[case,N,SubPrf],':',Goal],KBGoals) :- %TODO: make the next goals be implications
+proofStep(KB,[[_c,':',C],'->'|CS], [lambda,_c,P],[[ [[_c,':',C]|KB],[P,':'|CS] ]]).
+proofStep(KB,Goal,[case,N,SubPrf],KBGoals) :- %TODO: make the next goals be implications
   select([N,':'|C],KB,KBpp),
   refresh([[N,K]],KBpp,KBp),
   refresh([[N,K]],Goal,Goalp),
   refresh([[N,K]],C,Cp),
-  findall([KBp,[_,':'|SUB]],
-      (member([_,':'|X],KBp),
+  findall([KBp,[[of,K,'=',PRF],':'|SUB],PRF],
+      (member([K,':'|X],KBp),
        applyClause(X,Cp,SUBp),
-       append([SUBp,['->',[_,':',Goalp]]],SUB))
+       append([SUBp,['->',Goalp]],SUB))
     ,KBGoals),
   proofsOfKBGoals(KBGoals,SubPrf).
-proofStep(KB,[Cn,':'|Goal],KBGoals) :-
-  member([Cn,':'|C],KB),
-  applyClause(C,[Cn,':'|Goal],Cp),
+*/
+proofStep(KB,[G],P,KBGoals) :- !, proofStep(KB,G,P,KBGoals).
+proofStep(_,set,_,[]).
+proofStep(KB,[[_c,':',C],'->'|CS], [lambda,_c,P],[[ [[_c,':',C]|KB],CS,P ]]).
+proofStep(KB,Goal,[FKT|ARGS],KBGoals) :-
+  member([FKT,':'|C],KB),
+  applyClause(C,Goal,Cp),
   initCls(Cp,Goals),
-  replicateZip(KB,Goals,KBGoals).
+  mapProofVars(Goals,ARGS),
+  kbZip(KB,Goals,KBGoals).
 
+proof([KB,Goal,PRF]) :-
+  proofStep(KB,Goal,PRF,States),
+  maplist(proof,States).
+
+%proofAndorra(KBGoalsPre,KBGoalsPost) :-
+
+
+kbZip(_,[],[]).
+kbZip(KB,[[P,':'|G]|XS],[[KB,G,P]|ZS]) :- kbZip(KB,XS,ZS).
 
 proofsOfKBGoals([],[]).
 proofsOfKBGoals([[_,[P,':'|_]]|XS],[P|ZS]) :- proofsOfKBGoals(XS,ZS).
 
 kbGoalsToGoals([],[]).
-kbGoalsToGoals([[_,G]|XS],[G|ZS]) :- kbGoalsToGoals(XS,ZS).
+kbGoalsToGoals([[_,G,_]|XS],[G|ZS]) :- kbGoalsToGoals(XS,ZS).
+
+mapProofVars([],[]).
+mapProofVars([[P,':'|_]|XS],[P|ZS]):- mapProofVars(XS,ZS).
 
 /*
-KB = [ [a,':',[a,':',cA]]
-      ,[p1,':',[p1,':',cA]]
-      ,[p2,':',[p2,':',cA]]
+KB = [ [a,':',cA]
+      ,[f,':',[ap,':',cA],'->',cB]
       ],
-proofStep(KB,[[case,a,PRF],':',cA],PS), kbGoalsToGoals(PS,P).
+proofStep(KB,cB,PRF,PS), kbGoalsToGoals(PS,P).
+
+KB = [ [f,':',[ap,':',cA],'->',cB]
+      ],
+proofStep(KB,[[a,':',cA],'->',cB],PRF,PS), kbGoalsToGoals(PS,P).
+
+KB = [ [a,':',cA]
+      ,[p1,':',cA]
+      ,[p2,':',cA]
+      ],
+proofStep(KB,cA,[case,a,PRF],PS), kbGoalsToGoals(PS,P).
+
 
 KB = [ [left,':',[a,':',cA],'->',[cA,v,cB]]
       ,[right,':',[a,':',cA],'->',[cA,v,cB]]
