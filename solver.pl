@@ -71,15 +71,15 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
   noSingletons(REMp,REM).
 */
 
-/*
-proofGen([KB,Goal,PRF],RES) :-
-  proof(KB,Goal,PRF),
-  quote(KB),quote(Goal),quote(PRF),
-  ((vars(PRF,[]),
-    unquote(KB,KBU),unquote(Goal,GoalU),unquote(PRF,PRFU),
-    RES = [KBU,GoalU,PRFU], !)
+
+proofGen(GS,RES) :-
+  proofAndorra(GS),
+  quote(GS),
+  unquote(GS,GSU),
+  ((forall(member([_,_,PRF],KBGoals), vars(PRF,[])),
+    RES = GSU, !)
     ;
-  ( unquote(KB,KBU),
+  ( %TODO: make extra solve KB
     proof(KBU,[solve,[KB,Goal,PRF],[KBp,Gp,Pp]],_),
     quote(KBp),quote(Gp),quote(Pp), %Need to be quoted again (new variables)
     unquote(KBp,KBpU),unquote(Gp,GpU),unquote(Pp,PpU),
@@ -87,7 +87,7 @@ proofGen([KB,Goal,PRF],RES) :-
       RES = [KBpU,GpU,PpU], !)
       ;
       proofGen([KBpU,GpU,PpU],RES)) )).
-*/
+
 
 
 /*
@@ -128,8 +128,8 @@ proofStep(KB,Goal,[case,N,SubPrf],KBGoals) :- %TODO: make the next goals be impl
   proofsOfKBGoals(KBGoals,SubPrf).
 */
 proofStep([KB,[G],P],KBGoals) :- !, proofStep([KB,G,P],KBGoals).
-proofStep([_,set,_],[]).
-proofStep([KB,[[_c,':',C],'->'|CS], [lambda,_c,P]],[[ [[_c,':',C]|KB],CS,P ]]).
+%proofStep([_,set,_],[]).
+proofStep([KB,[[_c,':',C],'->'|CS], [lambda,_c,P]],[[ [[_c,':',C]|KB],CS,P ]]) :- !.
 proofStep([KB,Goal,[FKT|ARGS]],KBGoals) :-
   member([FKT,':'|C],KB),
   applyClause(C,Goal,Cp),
@@ -152,6 +152,7 @@ proofAndorra(KBGoals) :-
 proofAndorra(_).
 
 
+
 kbZip(_,[],[]).
 kbZip(KB,[[P,':'|G]|XS],[[KB,G,P]|ZS]) :- kbZip(KB,XS,ZS).
 
@@ -164,6 +165,8 @@ kbGoalsToGoals([[_,G,_]|XS],[G|ZS]) :- kbGoalsToGoals(XS,ZS).
 mapProofVars([],[]).
 mapProofVars([[P,':'|_]|XS],[P|ZS]):- mapProofVars(XS,ZS).
 
+
+%dataDeclToFkt([data,[':'|T],where],[])
 /*
 KB = [ [a,':',cA]
       ,[f,':',[ap,':',cA],'->',cB]
@@ -173,6 +176,21 @@ proofStep(KB,cB,PRF,PS), kbGoalsToGoals(PS,P).
 KB = [ [f,':',[ap,':',cA],'->',cB]
       ],
 proofStep(KB,[[a,':',cA],'->',cB],PRF,PS), kbGoalsToGoals(PS,P).
+
+KB = [ [f,':',[ap,':',cA],'->',cB]
+      ],
+proof([KB,[[a,':',cA],'->',cB],PRF]).
+
+KB = [ [f,':',[ap,':',cA],'->',cB]
+      ],
+proofAndorra([[KB,[[a,':',cA],'->',cB],PRF]]).
+
+KB = [ [a,':',cA]
+      ,[p1,':',cA]
+      ,[p2,':',cA]
+      ],
+proofAndorra([[KB,cA,PRF]]).
+
 
 KB = [ [a,':',cA]
       ,[p1,':',cA]
