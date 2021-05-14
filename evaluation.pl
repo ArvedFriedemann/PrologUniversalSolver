@@ -1,4 +1,4 @@
-
+:- use_module(solver).
 
 exchange(X,Y,X,Y) :- !.
 exchange(X,_,[lambda,X|E],[lambda,X|E]) :- !.
@@ -50,6 +50,14 @@ eval([Concat,[q2,':',[q1,':',mt]],[q2,':',mt ]], Res).
 eval([Concat,[q1,':',mt],[q2,':',mt] ], Res).
 */
 
+'HOU'(T1,T2,T1u) :- quote([T1,T2]),
+                      eval(T1,T1e), eval(T2,T2e),
+                      unquote([T1e,T2e],[T1u,T2u]),
+                      T1u = T2u.
+
+/*
+'HOU'([[lambda,a,a],[X,k,K,L]], [[lambda,a,a],[j,K,Y,M]], Res).
+*/
 
 
 
