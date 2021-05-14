@@ -72,16 +72,18 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
 */
 
 
-proofGen(GS,RES) :-
-  proofAndorra(GS),
-  quote(GS),
-  unquote(GS,GSU),
-  ((forall(member([_,_,PRF],KBGoals), vars(PRF,[])),
-    RES = GSU, !)
+proofGen(SolveKB,GS,RES) :-
+  proofAndorraFin(GS,GSF),
+  quote(GSF),
+  unquote(GSF,GSU),
+  ((GSF= [],
+    %forall(member([_,_,PRF],KBGoals), vars(PRF,[])),
+    RES = GS, !) %TODO: WARNING: andorra removes proven goals and with it the assigned variables. As they are not in the original goal anymore, this could cause problems.
     ;
-  ( %TODO: make extra solve KB
-    proof(KBU,[solve,[KB,Goal,PRF],[KBp,Gp,Pp]],_),
-    quote(KBp),quote(Gp),quote(Pp), %Need to be quoted again (new variables)
+  ( quote(SolveKB),
+    unquote(SolveKB,SolveKBU),
+    proofAndorraFin([[SolveKBU,[solve,[SolveKB,GSF],[SolveKBp,GSFp]],_]],Next),
+    quote(SolveKBp),quote(GSFp), %Need to be quoted again (new variables)
     unquote(KBp,KBpU),unquote(Gp,GpU),unquote(Pp,PpU),
     ((vars(Pp,[]),
       RES = [KBpU,GpU,PpU], !)
@@ -142,14 +144,15 @@ proof(STM) :-
   proofStep(STM,States),
   maplist(proof,States).
 
+proofAndorra(KBGoals):- proofAndorraFin(KBGoals,_).
 %WARNING: is a list of goals
-proofAndorra(KBGoals) :-
+proofAndorraFin(KBGoals,R) :-
   select(Goal,KBGoals,KBGoalsP),
   aggregate_all(count,proofStep(Goal,_),1), !,
   proofStep(Goal,Steps),
   append([Steps,KBGoalsP],Next),
-  proofAndorra(Next).
-proofAndorra(_).
+  proofAndorraFin(Next,R).
+proofAndorraFin(R,R).
 
 
 
@@ -205,7 +208,6 @@ KB = [ [left,':',[a,':',cA],'->',[cA,v,cB]]
       ],
 proofStep(KB,[cA,v,cB],PRF,PS), kbGoalsToGoals(PS,P).
 */
-
 
 
 
