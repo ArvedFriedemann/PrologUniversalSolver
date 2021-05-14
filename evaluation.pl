@@ -3,15 +3,20 @@ exchange(X,_,[lambda,X|E],[lambda,X|E]) :- !.
 exchange(X,Y,[E1|E2],[E1p|E2p]) :- !, exchange(X,Y,E1,E1p), exchange(X,Y,E2,E2p).
 exchange(_,_,E,E).
 
-removeSingleBrackets([],[]).
-removeSingleBrackets([[X]|XS],RS) :- !,removeSingleBrackets([X|XS],RS).
-removeSingleBrackets([[X|Xxs]|XS],[[Xp|Xpxs]|RS]) :- !, removeSingleBrackets([X|Xxs],[Xp|Xpxs]), removeSingleBrackets(XS,RS).
-removeSingleBrackets([S|XS],[S|RS]) :- removeSingleBrackets(XS,RS).
 
-eval(E,F) :- evalStep(E,K),!,eval(K,F).
-eval(R,R).
+removeSingleBrackets([X],Xp) :- !,removeSingleBrackets(X,Xp).
+removeSingleBrackets([X|XS],Xp) :- !,removeSingleBracketsp([X|XS],Xp).
+removeSingleBrackets(X,X).
 
-evalStep([E],R) :- !, evalStep(E,R).
+removeSingleBracketsp([],[]).
+removeSingleBracketsp([[X]|XS],RS) :- !,removeSingleBracketsp([X|XS],RS).
+removeSingleBracketsp([[X|Xxs]|XS],[[Xp|Xpxs]|RS]) :- !, removeSingleBracketsp([X|Xxs],[Xp|Xpxs]), removeSingleBracketsp(XS,RS).
+removeSingleBracketsp([S|XS],[S|RS]) :- !,removeSingleBracketsp(XS,RS).
+%removeSingleBrackets([[[a]],[[b],c]],R).
+
+eval(E,F) :- removeSingleBrackets(E,Eb), evalStep(Eb,K),!,removeSingleBrackets(K,Kb),eval(Kb,F).
+eval(R,Rb) :- removeSingleBrackets(R,Rb).
+
 evalStep([[lambda,X|E],Y|R], [Ep|R]) :- !, exchange(X,Y,E,Ep).
 %TODO: WARNING: this is not lazy!
 evalStep([case,X,of,Cases],Res) :- !, eval(X,E), caseStm(E,Cases,Res).
