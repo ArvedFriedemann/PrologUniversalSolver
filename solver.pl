@@ -1,3 +1,4 @@
+:- module(solver,[quote/1,unquote/2]).
 :- use_module(library(gensym)).
 
 
@@ -71,7 +72,7 @@ proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
   noSingletons(REMp,REM).
 */
 
-
+/*
 proofGen(SolveKB,GS,RES) :-
   proofAndorraFin(GS,GSF),
   quote(GSF),
@@ -89,7 +90,7 @@ proofGen(SolveKB,GS,RES) :-
       RES = [KBpU,GpU,PpU], !)
       ;
       proofGen([KBpU,GpU,PpU],RES)) )).
-
+*/
 
 
 /*
