@@ -1,4 +1,4 @@
-:- module(solver,[quote/2,unquote/2,unquoteOrig/3]).
+:- module(solver,[pseudoQuote/1,quote/2,unquote/2,unquoteOrig/3]).
 :- use_module(library(gensym)).
 
 
@@ -30,7 +30,8 @@ applyClause(C,[G],CLS) :- !, applyClause(C,G,CLS).
 applyClause(C,G,CLS) :- refreshClause([],C,CLS), last(CLS,Cl), Cl=G.
 % applyClause([[a,':',cA],'->',[b,':',[cB,a]],'->',[cC,b,a]],[K,k,l],CLS).
 
-unas(X) :- not(not(X=unas)).
+assig(X) :- atom(X) ; compound(X).
+unas(X) :- not(assig(X)).% not(not(X=unas)).
 
 assignUnas(C,X) :- unas(X), X=C, !.
 assignUnas(C,[X|_]) :- assignUnas(C,X).
