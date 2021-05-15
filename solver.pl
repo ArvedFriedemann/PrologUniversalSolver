@@ -1,4 +1,4 @@
-:- module(solver,[quote/1,unquote/2]).
+:- module(solver,[quote/2,unquote/2,unquoteOrig/3]).
 :- use_module(library(gensym)).
 
 
@@ -51,9 +51,10 @@ flatvars([_|XS],ZS) :- !,flatvars(XS,ZS).
 
 unquote(T,U) :- vars(T,V), refreshCnst(V,T,U).
 % T=[X,X,Y,Z,Y], pseudoQuote(T), unquote(T,U).
+unquoteOrig(T,O,O) :- unquote(T,O).
 
 quote(T,Tp) :- findall(T,pseudoQuote(T),[Tp]).
-
+%K = [[X,Y],k,Y], quote(K,Tp), unquoteOrig(Tp,K,Uq).
 
 
 
