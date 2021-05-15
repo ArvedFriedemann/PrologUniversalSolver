@@ -1,4 +1,4 @@
-:- module(solver,[pseudoQuote/1,quote/2,unquote/2,unquoteOrig/3]).
+:- module(solver,[pseudoQuote/1,quote/2,unquote/2,unquoteOrig/3,unas/1,assig/1]).
 :- use_module(library(gensym)).
 
 
