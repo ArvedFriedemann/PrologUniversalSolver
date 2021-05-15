@@ -41,16 +41,22 @@ quoteWith([C|CS],T) :- assignUnas(C,T),!,quoteWith(CS,T).
 quoteWith(_,_).
 % T=[X,X,Y,Z,Y], quoteWith([1,2,3,4],T).
 % T=[X,X,Y,Z,Y], quoteWith([1,2,3,4],T), refreshCnst([1,2,3,4],T,Tp).
-quote(T) :- gensym(q,C), assignUnas(var(C),T),!,quote(T).
-quote(_).
-% T=[X,X,Y,Z,Y], quote(T).
+pseudoQuote(T) :- gensym(q,C), assignUnas(var(C),T),!,pseudoQuote(T).
+pseudoQuote(_).
+% T=[X,X,Y,Z,Y], pseudoQuote(T).
 vars(T,VS) :- flatten(T,TF), flatvars(TF,VS).
 flatvars([],[]).
 flatvars([var(X)|XS],[var(X)|ZS]) :- !,flatvars(XS,ZS).
 flatvars([_|XS],ZS) :- !,flatvars(XS,ZS).
 
 unquote(T,U) :- vars(T,V), refreshCnst(V,T,U).
-% T=[X,X,Y,Z,Y], quote(T), unquote(T,U).
+% T=[X,X,Y,Z,Y], pseudoQuote(T), unquote(T,U).
+
+quote(T,Tp) :- findall(T,pseudoQuote(T),[Tp]).
+
+
+
+
 
 replicateFor(_,[],[]).
 replicateFor(C,[C|CS],[_|XS]) :- replicateFor(C,CS,XS).
