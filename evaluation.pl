@@ -50,28 +50,31 @@ eval([Concat,[q2,':',[q1,':',mt]],[q2,':',mt ]], Res).
 eval([Concat,[q1,':',mt],[q2,':',mt] ], Res).
 */
 
-
+/*
 'HOU'(T1,T2,T1u) :- quote([T1,T2],[T1q,T2q]),
                       eval(T1q,T1e), eval(T2q,T2e),
                       unquote([T1e,T2e,T1q,T2q],[T1u,T2u,T1,T2]),
                       T1u = T2u.
+                      */
 /*
 'HOU'([[lambda,a,a],[X,k,K,L]], [[lambda,a,a],[j,K,Y,M]], Res).
 */
 
 /*
 This didn't work because when etting two variables equal, they are always unified, but not with higher order unification. Therefore, only the above can really work...
+*/
 'HOU'(T1,T2,Res) :- quote([T1,T2],[T1q,T2q]),
                       eval(T1q,T1e), eval(T2q,T2e),
                       unquote([T1e,T2e,T1q,T2q],[T1u,T2u,T1,T2]),
                       shallowUnif(T1u,T2u,R),
-                      ((R=true,Res=T1u) ; 'HOU'(T1u,T2u,Res)).
+                      ((R=true,!,Res=T1u) ; 'HOU'(T1u,T2u,Res)).
 
-shallowUnif(X,X,true) :- !.
-shallowUnif(X,_,false) :- unas(X),!.
-shallowUnif(_,X,false) :- unas(X),!.
+shallowUnif(X,Y,true) :- unas(X),X=Y,!.
+shallowUnif(Y,X,true) :- unas(X),X=Y,!.
+%TODO: check if this in correct in general...
 shallowUnif([X|_],_,false) :- unas(X),!.
 shallowUnif(_,[X|_],false) :- unas(X),!.
+shallowUnif(X,X,true) :- !.
 shallowUnif([X|XS],[Y|YS],R) :-
   maplist(shallowUnif,[X|XS],[Y|YS],L),
   and(L,R).
@@ -79,7 +82,10 @@ shallowUnif([X|XS],[Y|YS],R) :-
 and([],true) :- !.
 and([true|XS],R) :- !, and(XS,R).
 and(_,false).
+/*
+'HOU'([[F,k],F], [[k,k],[lambda,a,[a,a]]], Res).
 */
+
 
 
 %TODO: this is trying to prove the equivalence of two functions. Not sure if this can be done automatically in every possible case...
