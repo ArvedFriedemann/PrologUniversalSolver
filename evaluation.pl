@@ -50,9 +50,9 @@ eval([Concat,[q2,':',[q1,':',mt]],[q2,':',mt ]], Res).
 eval([Concat,[q1,':',mt],[q2,':',mt] ], Res).
 */
 
-'HOU'(T1,T2,T1u) :- quote([T1,T2]),
-                      eval(T1,T1e), eval(T2,T2e),
-                      unquote([T1e,T2e],[T1u,T2u]),
+'HOU'(T1,T2,T1u) :- quote([T1,T2],[T1q,T2q]),
+                      eval(T1q,T1e), eval(T2q,T2e),
+                      unquote([T1e,T2e,T1q,T2q],[T1u,T2u,T1,T2]),
                       T1u = T2u.
 
 /*
