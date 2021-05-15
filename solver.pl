@@ -30,7 +30,7 @@ applyClause(C,[G],CLS) :- !, applyClause(C,G,CLS).
 applyClause(C,G,CLS) :- refreshClause([],C,CLS), last(CLS,Cl), Cl=G.
 % applyClause([[a,':',cA],'->',[b,':',[cB,a]],'->',[cC,b,a]],[K,k,l],CLS).
 
-assig(X) :- atom(X) ; compound(X).
+assig(X) :- nonvar(X).% atom(X) ; compound(X).
 unas(X) :- not(assig(X)).% not(not(X=unas)).
 
 assignUnas(C,X) :- unas(X), X=C, !.
