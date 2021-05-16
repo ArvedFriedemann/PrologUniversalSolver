@@ -74,6 +74,11 @@ shallowUnif(Y,X,true) :- unas(X),X=Y,!.
 %TODO: check if this in correct in general...
 shallowUnif([X|_],_,false) :- unas(X),!.
 shallowUnif(_,[X|_],false) :- unas(X),!.
+shallowUnif([lambda,X1|Y1],[lambda,X2|Y2],R) :- !,
+  pseudoQuote(K),
+  eval([[lambda,X1|Y1],K],T1),
+  eval([[lambda,X2|Y2],K],T2),
+  shallowUnif(T1,T2,R).
 shallowUnif(X,X,true) :- !.
 shallowUnif([X|XS],[Y|YS],R) :-
   maplist(shallowUnif,[X|XS],[Y|YS],L),
@@ -84,6 +89,8 @@ and([true|XS],R) :- !, and(XS,R).
 and(_,false).
 /*
 'HOU'([[F,k],F], [[k,k],[lambda,a,[a,a]]], Res).
+'HOU'([lambda,a,[a,a]], [lambda,a,[a,a]], Res).
+'HOU'([lambda,b,[b,b]], [lambda,a,[a,a]], Res).
 */
 
 
