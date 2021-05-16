@@ -91,20 +91,29 @@ and(_,false).
 'HOU'([[F,k],F], [[k,k],[lambda,a,[a,a]]], Res).
 'HOU'([lambda,a,[a,a]], [lambda,a,[a,a]], Res).
 'HOU'([lambda,b,[b,b]], [lambda,a,[a,a]], Res).
+'HOU'([lambda,b,b], [lambda,a,[a,a]], Res).
 */
 
 
+applyClauseHOU(C,[G],CLS) :- !, applyClauseHOU(C,G,CLS).
+applyClauseHOU(C,G,CLS) :- refreshClause([],C,CLS), last(CLS,Cl), 'HOU'(Cl,G,_).
 
-%TODO: this is trying to prove the equivalence of two functions. Not sure if this can be done automatically in every possible case...
-'HOE'(T1,T2) :- 'HOU'(T1,T2,_),!.
-'HOE'([lambda,X1|E1],[lambda,X2|E2]) :- pseudoQuote(K),
-  eval([[lambda,X1|E1],K], E1p),
-  eval([[lambda,X2|E2],K], E2p),
-  'HOE'(E1p,E2p).
+proofStep([KB,[G],P],KBGoals) :- !, proofStep([KB,G,P],KBGoals).
+%proofStep([_,set,_],[]).
+proofStep([KB,[[_c,':',C],'->'|CS], [lambda,_c,P]],[[ [[_c,':',C]|KB],CS,P ]]) :- !.
+proofStep([KB,Goal,[FKT|ARGS]],KBGoals) :-
+  member([FKT,':'|C],KB),
+  applyClauseHOU(C,Goal,Cp),
+  initCls(Cp,Goals),
+  mapProofVars(Goals,ARGS),
+  kbZip(KB,Goals,KBGoals).
 
-/*
-'HOE'([lambda,x,x],[lambda,y,y]).
-*/
+%[KB,Goal,PRF]
+proof(STM) :-
+  proofStep(STM,States),
+  maplist(proof,States).
+
+
 
 
 
