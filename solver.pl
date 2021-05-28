@@ -69,16 +69,6 @@ replicateZip(C,[X|XS],[[C,X]|ZS]) :- replicateZip(C,XS,ZS).
 noSingletons([],[]).
 noSingletons([[X]|XS],[X|ZS]) :- !, noSingletons(XS,ZS).
 noSingletons([X|XS],[X|ZS]) :- noSingletons(XS,ZS),!.
-/*
-proof(KB,[P,':',Goal],P) :- !,proof(KB,Goal,P).
-proof(KB,[[K,':'|P],'->'|PS],[lambda,K,PRF]) :- !,proof([[K,':'|P]|KB],PS,PRF).
-proof(KB,[P],PRF) :- !,proof(KB,P,PRF).
-proof(KB,Goal,[Cn|REM]) :- member([Cn,':'|C],KB), applyClause(C,Goal,Cp),
-  initCls(Cp,Cpi),
-  replicateFor(KB,KBL,Cpi),
-  maplist(proof,KBL,Cpi,REMp),
-  noSingletons(REMp,REM).
-*/
 
 /*
 proofGen(SolveKB,GS,RES) :-
@@ -122,22 +112,7 @@ KB=[
   ],
 proofGen([KB,[cC,K],PRF],RES).
 */
-/*
-%assumes clause result still carries proof!
-%proofStep(KB,_,[]) :- member([_,':',bot],KB). %should not be needed
-proofStep(KB,[[_c,':',C],'->'|CS], [lambda,_c,P],[[ [[_c,':',C]|KB],[P,':'|CS] ]]).
-proofStep(KB,Goal,[case,N,SubPrf],KBGoals) :- %TODO: make the next goals be implications
-  select([N,':'|C],KB,KBpp),
-  refresh([[N,K]],KBpp,KBp),
-  refresh([[N,K]],Goal,Goalp),
-  refresh([[N,K]],C,Cp),
-  findall([KBp,[[of,K,'=',PRF],':'|SUB],PRF],
-      (member([K,':'|X],KBp),
-       applyClause(X,Cp,SUBp),
-       append([SUBp,['->',Goalp]],SUB))
-    ,KBGoals),
-  proofsOfKBGoals(KBGoals,SubPrf).
-*/
+
 proofStep([KB,[G],P],KBGoals) :- !, proofStep([KB,G,P],KBGoals).
 %proofStep([_,set,_],[]).
 proofStep([KB,[[_c,':',C],'->'|CS], [lambda,_c,P]],[[ [[_c,':',C]|KB],CS,P ]]) :- !.
@@ -154,7 +129,7 @@ proof(STM) :-
   maplist(proof,States).
 
 proofAndorra(KBGoals):- proofAndorraFin(KBGoals,_).
-%WARNING: is a list of goals
+%[[KB,Goal,PRF]]
 proofAndorraFin(KBGoals,R) :-
   select(Goal,KBGoals,KBGoalsP),
   aggregate_all(count,proofStep(Goal,_),1), !,
@@ -162,6 +137,17 @@ proofAndorraFin(KBGoals,R) :-
   append([Steps,KBGoalsP],Next),
   proofAndorraFin(Next,R).
 proofAndorraFin(R,R).
+
+%[[KB,Goal,PRF]]
+proofFixSolveKB(SolveKB,KBGoals) :-
+  proofAndorraFin(KBGoals, KBGoalsP),
+  ((KBGoals = [], !) ; (
+  quote(KBGoalsP,KBGoalsQ),
+  proofFixSolveKB([[SolveKB,[solve, KBGoalsQ],_]|KBGoalsP])
+  %TODO: additionally stop when original proof is fully applied
+  %TODO: unquoting? prolly needs to be done manually here...
+  )
+
 
 
 
